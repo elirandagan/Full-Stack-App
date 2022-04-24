@@ -3,20 +3,19 @@ import app from "../server";
 import mongoose from "mongoose";
 import User from "../models/user_model";
 
-const email = "mendel@gmail.com";
+const email = "eliran@gmail.com";
 const wrongEmail = "test2@a.com";
-const password = "amar123";
+const password = "dagan123";
 const wrongPassword = "44444444";
 let accessToken = "";
 let refreshToken = "";
 
-const sleep = (ms:number) => new Promise((r) => setTimeout(r, ms));
-
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 beforeAll(async () => {
   //set the token expiration to 3 sec so it will expire for the refresh test.
-  process.env.TOKEN_EXPIRATION = '3s'
-  
+  process.env.TOKEN_EXPIRATION = "3s";
+
   // clear Posts collection
   await User.deleteMany({ email: email });
 });
@@ -28,7 +27,7 @@ afterAll(async () => {
 
 describe("This is Auth API test", () => {
   test("Test register API", async () => {
-    let response = await request(app)
+    const response = await request(app)
       .post("/auth/register")
       .send({ email: email, password: password });
     expect(response.statusCode).toEqual(200);
@@ -36,15 +35,10 @@ describe("This is Auth API test", () => {
     refreshToken = response.body.refresh_token;
     expect(accessToken).not.toBeNull();
     expect(refreshToken).not.toBeNull();
-
-    response = await request(app)
-      .get("/auth/test")
-      .set({ authorization: "bearer " + accessToken });
-    expect(response.statusCode).toEqual(200);
   });
 
   test("Test login API", async () => {
-    let response = await request(app)
+    const response = await request(app)
       .post("/auth/login")
       .send({ email: email, password: password });
     expect(response.statusCode).toEqual(200);
@@ -53,11 +47,6 @@ describe("This is Auth API test", () => {
     refreshToken = response.body.refresh_token;
     expect(accessToken).not.toBeNull();
     expect(refreshToken).not.toBeNull();
-
-    response = await request(app)
-      .get("/auth/test")
-      .set({ authorization: "bearer " + accessToken });
-    expect(response.statusCode).toEqual(200);
   });
 
   test("Test register taken email API", async () => {
@@ -81,19 +70,12 @@ describe("This is Auth API test", () => {
     expect(response.statusCode).not.toEqual(200);
   });
 
-
   test("test refresh token", async () => {
     //wait untill access token is expiered
     await sleep(3000);
-    let response = await request(app)
-      .get("/auth/test")
-      .set({ authorization: "barer " + accessToken });
-    expect(response.statusCode).not.toEqual(200);
-
-    
-    response = await request(app)
+    const response = await request(app)
       .get("/auth/refresh")
-      .set({ authorization: "barer " + refreshToken });
+      .set({ authorization: "bearer " + refreshToken });
     expect(response.statusCode).toEqual(200);
 
     accessToken = response.body.access_token;
@@ -101,10 +83,18 @@ describe("This is Auth API test", () => {
     expect(accessToken).not.toBeNull();
     expect(refreshToken).not.toBeNull();
 
-    console.log("new access token " + accessToken)
+    console.log("new access token " + accessToken);
+  });
+
+  test("logout user", async () => {
+    let response = await request(app)
+      .post("/auth/login")
+      .send({ email: email, password: password });
+    expect(response.statusCode).toEqual(200);
+
     response = await request(app)
-      .get("/auth/test")
-      .set({ authorization: "barer " + accessToken });
+      .post("/auth/logout")
+      .send({ email: email, password: password });
     expect(response.statusCode).toEqual(200);
   });
 });

@@ -145,12 +145,11 @@ router.post("/login", Auth.login);
  */
 router.get("/refresh", Auth.renewToken);
 
-
 /**
  * @swagger
- * /auth/test:
- *   get:
- *     summary: test access token
+ * /auth/logout:
+ *   post:
+ *     summary: logout the user session
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -159,7 +158,6 @@ router.get("/refresh", Auth.renewToken);
  *         description: success 
  *
  */
-router.get("/test", authenticate, Auth.test);
-router.get("/test2", Auth.test);
 
+router.post('/logout', Auth.logout);
 export = router;

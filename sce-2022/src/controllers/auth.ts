@@ -157,64 +157,16 @@ const renewToken = async (req: Request, res: Response) => {
  */
  const logout = async (req: Request, res: Response) => {
   console.log("logout");
-  const email = req.body.email;
-  const password = req.body.password;
-  if (email == null || password == null) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .send({ error: "wrong email or password" });
-  }
+  const user = await User.findOne({ email: req.body.email });
+  user.refreshToken = ' '
+  await user.save()
+  res.status(StatusCodes.OK).json('you have been logout.')
+ };
 
-  try {
-    // check password match
-    const user = await User.findOne({ email: email });
-    if (user == null) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send({ error: "wrong email or password" });
-    }
-
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send({ error: "wrong email or password" });
-    }
-
-    const [accessToken, refreshToken] = generateTokens(user._id)
-    user.refreshToken = refreshToken;
-    await user.save();
-    res.status(StatusCodes.OK).send({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      _id: user._id,
-    });
-  } catch (err) {
-    return res.status(StatusCodes.BAD_REQUEST).send({ error: err.message });
-  }
-};
-
-/**
- * test
- * @param {http req} req
- * @param {http res} res
- */
-const test = async (req: Request, res: Response) => {
-  try {
-    const user = await User.findById('6241a871835ce0051192dc20')
-    user.refreshToken = "sdfasd"
-    await user.save()
-    res.status(StatusCodes.OK).send({ test: 'adsfasd' });
-
-  } catch (err) {
-    return res.status(StatusCodes.FORBIDDEN).send({ error: err.message });
-  }
-};
 
 export = {
   register,
   login,
   logout,
   renewToken,
-  test,
 };
